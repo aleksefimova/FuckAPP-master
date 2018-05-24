@@ -2,11 +2,17 @@ package com.example.a111.fuckapp;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.os.Environment;
+import android.util.Log;
+import android.widget.Toast;
 
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.lang.reflect.Array;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -35,7 +41,7 @@ public class MappingSession {
         this.SessionTitle = sessionTitle;
         this.sharedPref = context.getSharedPreferences(this.SessionTitle, Context.MODE_PRIVATE);
         String json = sharedPref.getString(SessionTitle, null);
-       // this.Markers = new Gson().fromJson(json, new ListParameterizedType(MarkerOptions));
+        this.Markers = new Gson().fromJson(json, new ListParameterizedType<>(MarkerOptions.class));
     }
 
     //Save the Session to shared preferences
@@ -46,7 +52,34 @@ public class MappingSession {
         editor.apply(); //Saves the changes, commit() instead apply() would return if it was successful as boolean
     }
 
-    static class ListParameterizedType<X> implements ParameterizedType { //this one is that the fromJSON works, but is not fine yet, just ignore
+    public void ExportSession(){
+        String LOG_TAG = "SessionExportError";
+        String FileName = SessionTitle +".txt";
+        String state = Environment.getExternalStorageState(); //get the state of the external storage
+        if (!Environment.MEDIA_MOUNTED.equals(state)) { //check if it is mounted
+            Log.e(LOG_TAG, "No external storage mounted");
+            return;
+        }else{
+            try {
+                File root = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),"Mapping Sessions");
+                if (!root.exists()) {
+                    root.mkdirs();
+                }
+                File file = new File(root,FileName);
+                file.createNewFile();
+                FileWriter writer = new FileWriter(file);
+                writer.append(new Gson().toJson(Markers));
+                writer.flush();
+                writer.close();
+                Toast.makeText(context,"Saved", Toast.LENGTH_SHORT).show();
+            }catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    // this class implements the Interface ParameterizedType so that Gson().fromJson can properly interprete the MarkerOptions class (and every other Class)
+    private static class ListParameterizedType<X> implements ParameterizedType {
 
         private Class<?> wrapped;
 

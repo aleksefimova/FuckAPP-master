@@ -243,6 +243,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         MappingSession mapS1 = new MappingSession("Test1", markers, this);
         mapS1.SaveSession();
         MappingSession mapS2 = new MappingSession("Test1",this);
+        mapS1.ExportSession();
     }
 
     @Override
