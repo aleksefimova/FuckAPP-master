@@ -52,26 +52,27 @@ public class MappingSession {
         editor.apply(); //Saves the changes, commit() instead apply() would return if it was successful as boolean
     }
 
+    //Exporting the session to external Storage
     public void ExportSession(){
         String LOG_TAG = "SessionExportError";
         String FileName = SessionTitle +".txt";
         String state = Environment.getExternalStorageState(); //get the state of the external storage
-        if (!Environment.MEDIA_MOUNTED.equals(state)) { //check if it is mounted
+        if (!Environment.MEDIA_MOUNTED.equals(state)) { //check if it is not mounted
             Log.e(LOG_TAG, "No external storage mounted");
             return;
         }else{
             try {
-                File root = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),"Mapping Sessions");
-                if (!root.exists()) {
-                    root.mkdirs();
+                File root = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),"Mapping Sessions"); //Get the Path of the Downloads-Dictionary and the folder  "Mapping Sessions"
+                if (!root.exists()) { //if the folder does not exist...
+                    root.mkdirs(); //... add it
                 }
-                File file = new File(root,FileName);
-                file.createNewFile();
-                FileWriter writer = new FileWriter(file);
-                writer.append(new Gson().toJson(Markers));
-                writer.flush();
+                File file = new File(root,FileName); //get to our File
+                file.createNewFile(); //create it it it doesn't exist
+                FileWriter writer = new FileWriter(file); //Filewriter to write our new file
+                writer.append(new Gson().toJson(Markers)); //Add a Json of your Markers to the File
+                writer.flush(); //just send it!
                 writer.close();
-                Toast.makeText(context,"Saved", Toast.LENGTH_SHORT).show();
+                Toast.makeText(context,"Saved", Toast.LENGTH_SHORT).show(); //shows a little "Saveed" massage on the Display
             }catch (IOException e) {
                 e.printStackTrace();
             }
