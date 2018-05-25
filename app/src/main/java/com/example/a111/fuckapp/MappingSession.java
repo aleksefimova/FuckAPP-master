@@ -1,47 +1,39 @@
 package com.example.a111.fuckapp;
 
-import android.Manifest;
+import android.app.AlertDialog;
 import android.content.Context;
-import android.content.Intent;
+import android.content.DialogInterface;
 import android.content.SharedPreferences;
-import android.content.pm.PackageManager;
-import android.net.Uri;
 import android.os.Environment;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
+import android.text.InputType;
 import android.util.Log;
+import android.widget.EditText;
 import android.widget.Toast;
 
-import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.lang.reflect.Array;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.time.LocalDateTime;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.List;
+import java.util.Date;
 
 public class MappingSession {
 
-    String SessionTitle = Calendar.getInstance().getTime().toString(); //Default for the SessionTitle is the Date and Time
-    ArrayList<MappingPoint> Markers;
+    private String SessionTitle; //Default for the SessionTitle is the Date and Time
+    private ArrayList<MappingPoint> Markers;
     private Context context; //needed to save it with shared preferences
-    private SharedPreferences sharedPref;
-
-
 
 
     //Constructor to make an "empty" MappingSession with giving a context
     public MappingSession(Context context){
+        SimpleDateFormat df = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss"); //set the Format for the Date
+        this.SessionTitle = df.format(Calendar.getInstance().getTime()); //date as default of SessionTitle
         this.context = context;
         this.Markers = new ArrayList<>();
     }
@@ -51,97 +43,103 @@ public class MappingSession {
         this.SessionTitle = sessionTitle;
         this.Markers = markers;
         this.context = context;
-        this.sharedPref = context.getSharedPreferences(this.SessionTitle, Context.MODE_PRIVATE);
     }
 
     //Constructor to make a Mapping Session Object from the shared preferences. When calling it from the Activity put "this" for the context value
     public MappingSession(String sessionTitle, Context context){
         this.context = context;
         this.SessionTitle = sessionTitle;
-        this.sharedPref = context.getSharedPreferences(this.SessionTitle, Context.MODE_PRIVATE);
+        SharedPreferences sharedPref = context.getSharedPreferences(this.SessionTitle, Context.MODE_PRIVATE);
         String json = sharedPref.getString(SessionTitle, null);
         this.Markers = new Gson().fromJson(json, new ListParameterizedType<>(MappingPoint.class));
     }
 
     //Save the Session to shared preferences
-    public void SaveSession(){
+    public void Save(){
         String json = new Gson().toJson(Markers); //needs to be a string to save it, converts it to a JSON
+        SharedPreferences sharedPref = context.getSharedPreferences(this.SessionTitle, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPref.edit(); //Creates an Editor to write to shared preferences
         editor.putString(SessionTitle,json); //Pass the Session as a key value pair
         editor.apply(); //Saves the changes, commit() instead apply() would return if it was successful as boolean
     }
 
-    //Exporting the session to external Storage
-    public void ExportSession(){
-        /*
-        String FileName = SessionTitle +".txt";
-        Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
-        intent.addCategory(Intent.CATEGORY_OPENABLE);
-        intent.setType("text/plain");
+    //Saves the Session to shared preferences after asking fo a new Title if the Title is default
+    public void SaveSession(){
+        SimpleDateFormat df = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
+        try {
+            df.parse(SessionTitle); //check if SessionTitle is a date
 
-        if (intent != null && intent.getData() != null) {
-            try {
-                File root = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "Mapping Sessions");
-                File file = new File(root, FileName);
-                Uri uri = Uri.fromFile(file); //Get the Path of the Downloads-Dictionary
-                OutputStream outputStream = context.getContentResolver().openOutputStream(uri);
-                BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(outputStream));
-                bw.write(new Gson().toJson(Markers));
-                bw.flush();
-                bw.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            AlertDialog.Builder builder = new AlertDialog.Builder(context);
+            builder.setTitle("Session Name").setMessage("Enter the Name for this Session");
+            final EditText input = new EditText(context);
+            input.setInputType(InputType.TYPE_CLASS_TEXT);
+            builder.setView(input);
+
+            builder.setPositiveButton("ok", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int i) {
+                    SessionTitle = input.getText().toString();
+                    Save();
+                }
+            })
+                    .setNegativeButton("cancel", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int i) {
+                            Save();
+                            dialog.cancel();
+                        }
+                    });
+
+            // show it
+            builder.show();
         }
-
+        catch(ParseException e){
+            Save();
+        }
     }
 
+    // add a Point to the Session
+    public void addPoint(MappingPoint mappingPoint){
+        this.Markers.add(mappingPoint);
+    }
 
+    //Exports the Session after asking for a new Title if the Title is default
+    public void ExportSession(){
+        SimpleDateFormat df = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
+        try {
+            df.parse(SessionTitle); //check if SessionTitle is a date
 
-        public void exportToTxt(View view){
+            AlertDialog.Builder builder = new AlertDialog.Builder(context);
+            builder.setTitle("Session Name").setMessage("Enter the Name for this Session");
+            final EditText input = new EditText(context);
+            input.setInputType(InputType.TYPE_CLASS_TEXT);
+            builder.setView(input);
 
-            String text = result.getText().toString();
-            Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
-            intent.addCategory(Intent.CATEGORY_OPENABLE);
-            intent.setType("text/plain");
-            startActivityForResult(intent, CODE_FOR_FILE_SAVING);
-
-        }
-
-        @Override
-        protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-            super.onActivityResult(requestCode, resultCode, data);
-            if (requestCode == CODE_FOR_FILE_SAVING) {
-                switch (resultCode) {
-                    case Activity.RESULT_OK:
-                        if (data != null
-                                && data.getData() != null) {
-                            writeInFile(data.getData(), result.getText().toString());
-                        }
-                        break;
-                    case Activity.RESULT_CANCELED:
-                        break;
+            builder.setPositiveButton("ok", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int i) {
+                    SessionTitle = input.getText().toString();
+                    Export();
                 }
-            }
+            })
+            .setNegativeButton("cancel", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int i) {
+                    Export();
+                    dialog.cancel();
+                }
+            });
+
+            // show it
+            builder.show();
         }
-        // practically copy paste from docs
-                private void writeInFile(Uri uri, String text) {
-                    OutputStream outputStream;
-                    try {
-                        outputStream = getContentResolver().openOutputStream(uri);
-                        BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(outputStream));
-                        bw.write(text);
-                        bw.flush();
-                        bw.close();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-
+        catch(ParseException e){
+            Export();
         }
+    }
 
-
-         Oben neu, Unten alt
-        */
+    //Exporting the session to external Storage
+    private void Export(){
 
         String LOG_TAG = "SessionExportError";
         String FileName = SessionTitle +".txt";
@@ -165,11 +163,6 @@ public class MappingSession {
                 e.printStackTrace();
             }
         }
-    }
-
-
-    public void addPoint(MappingPoint mappingPoint){
-        this.Markers.add(mappingPoint);
     }
 
     // this class implements the Interface ParameterizedType so that Gson().fromJson can properly interprete the MarkerOptions class (and every other Class)

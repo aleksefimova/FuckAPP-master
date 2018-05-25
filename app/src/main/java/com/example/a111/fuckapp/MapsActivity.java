@@ -60,8 +60,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     Marker mCurrLocationMarker;
     LocationRequest mLocationRequest;
     EditText result;
-    //ArrayList markers; // Just to Test but needs to be done anyway
-    //ArrayList testmarkers; //only for the TestarrayList
     MappingSession session = new MappingSession(context);
     static boolean isLabellingActive = false;
     LocationManager locationManager = null;
