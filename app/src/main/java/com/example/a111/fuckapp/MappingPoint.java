@@ -6,7 +6,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 public class MappingPoint {
 
     private LatLng latlng;
-    private String PointTitle;
+    public String PointTitle;
     private String Metadata; //just symbolic, add the attributes you need for the Metadata
 
     //Constructor also add the Metadata attributes here

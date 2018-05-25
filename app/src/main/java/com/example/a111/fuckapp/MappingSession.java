@@ -23,8 +23,8 @@ import java.util.List;
 
 public class MappingSession {
 
-    public String SessionTitle = Calendar.getInstance().getTime().toString(); //Default for the SessionTitle is the Date and Time
-    public ArrayList<MappingPoint> Markers;
+    String SessionTitle = Calendar.getInstance().getTime().toString(); //Default for the SessionTitle is the Date and Time
+    ArrayList<MappingPoint> Markers;
     private Context context; //needed to save it with shared preferences
     private SharedPreferences sharedPref;
 
@@ -64,6 +64,52 @@ public class MappingSession {
 
     //Exporting the session to external Storage
     public void ExportSession(){
+        /**
+        public void exportToTxt(View view){
+
+            String text = result.getText().toString();
+            Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
+            intent.addCategory(Intent.CATEGORY_OPENABLE);
+            intent.setType("text/plain");
+            startActivityForResult(intent, CODE_FOR_FILE_SAVING);
+
+        }
+
+        @Override
+        protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+            super.onActivityResult(requestCode, resultCode, data);
+            if (requestCode == CODE_FOR_FILE_SAVING) {
+                switch (resultCode) {
+                    case Activity.RESULT_OK:
+                        if (data != null
+                                && data.getData() != null) {
+                            writeInFile(data.getData(), result.getText().toString());
+                        }
+                        break;
+                    case Activity.RESULT_CANCELED:
+                        break;
+                }
+            }
+        }
+        // practically copy paste from docs
+                private void writeInFile(Uri uri, String text) {
+                    OutputStream outputStream;
+                    try {
+                        outputStream = getContentResolver().openOutputStream(uri);
+                        BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(outputStream));
+                        bw.write(text);
+                        bw.flush();
+                        bw.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+
+        }
+
+        /**
+         * Oben neu, Unten alt
+         */
+
         String LOG_TAG = "SessionExportError";
         String FileName = SessionTitle +".txt";
         String state = Environment.getExternalStorageState(); //get the state of the external storage

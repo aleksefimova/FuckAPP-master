@@ -4,7 +4,10 @@ import android.Manifest;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
+import android.location.GpsSatellite;
+import android.location.GpsStatus;
 import android.location.Location;
+import android.location.LocationManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
@@ -32,6 +35,7 @@ import android.content.Context;
 
 import java.util.ArrayList;
 import java.util.Arrays; //This is only for the TestarrayList to convert the Array
+import java.util.Iterator;
 import java.util.List;
 import android.util.Log;
 
@@ -44,11 +48,14 @@ import com.google.gson.Gson;
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback,
         GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
-        LocationListener {
+        LocationListener,
+        GpsStatus.Listener{
 
     final Context context = this;
     private GoogleMap mMap;
+    static int nSatellites = -1; // here we keep the metadata on the number of satellites
     GoogleApiClient mGoogleApiClient;
+    final int CODE_FOR_FILE_SAVING = 44; // documentation says we need this for some security reasons or whatever
     Location mLastLocation;
     Marker mCurrLocationMarker;
     LocationRequest mLocationRequest;
@@ -57,6 +64,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     //ArrayList testmarkers; //only for the TestarrayList
     MappingSession session = new MappingSession(context);
     static boolean isLabellingActive = false;
+    LocationManager locationManager = null;
 
 
     @Override
@@ -73,6 +81,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mapFragment.getMapAsync(this);
         result = (EditText) findViewById(R.id.editTextResult);
 
+        locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        locationManager.addGpsStatusListener(this);
 
         /*Testarraylist
         MarkerOptions[] testarray = {
@@ -85,6 +95,22 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         testmarkers = new ArrayList<>(Arrays.asList(testarray));
         */
 
+    }
+
+    @Override // meta data
+    public void onGpsStatusChanged(int x) throws SecurityException{
+        GpsStatus gpsStatus = locationManager.getGpsStatus(null);
+        if(gpsStatus != null) {
+            Iterable<GpsSatellite>satellites = gpsStatus.getSatellites();
+            Iterator<GpsSatellite> sat = satellites.iterator();
+            nSatellites = 0;
+            while (sat.hasNext()) {
+                GpsSatellite satellite = sat.next();
+                if (satellite.usedInFix()){
+                    nSatellites += 1;
+                }
+            }
+        }
     }
 
     /**
@@ -147,10 +173,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     */
 
                     //Replacement code but still not in the right place, userInput.getText() is still null here
-                    MappingPoint point = new MappingPoint(arg0,(userInput.getText()).toString()); //MappingPoint instead of MarkerOptions
-                    session.addPoint(point); //MappingSession instead of the markers Arraylist
-                    Marker m= mMap.addMarker(point.toMarkerOptions());
+                    final MappingPoint point = new MappingPoint(arg0,(userInput.getText()).toString()); //MappingPoint instead of MarkerOptions
+                    //session.addPoint(point); //MappingSession instead of the markers Arraylist
+                    Marker m= mMap.addMarker(point.toMarkerOptions()); //add .draggable(true) makes the marker draggable
                     m.showInfoWindow();
+
 
                     // set dialog message
                     alertDialogBuilder
@@ -163,6 +190,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
                                             String new_note = arg0.toString()+" "+userInput.getText();
                                             result.append(new_note);
+
+                                            point.PointTitle = (userInput.getText()).toString();
                                         }
                                     })
                             .setNegativeButton("Cancel",
@@ -177,6 +206,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
                     // show it
                     alertDialog.show();
+
+                    session.addPoint(point);
 
                 }
 
