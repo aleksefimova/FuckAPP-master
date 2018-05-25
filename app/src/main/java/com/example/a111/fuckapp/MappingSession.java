@@ -1,8 +1,14 @@
 package com.example.a111.fuckapp;
 
+import android.Manifest;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Environment;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -10,9 +16,12 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.lang.reflect.Array;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -64,7 +73,31 @@ public class MappingSession {
 
     //Exporting the session to external Storage
     public void ExportSession(){
-        /**
+        /*
+        String FileName = SessionTitle +".txt";
+        Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType("text/plain");
+
+        if (intent != null && intent.getData() != null) {
+            try {
+                File root = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "Mapping Sessions");
+                File file = new File(root, FileName);
+                Uri uri = Uri.fromFile(file); //Get the Path of the Downloads-Dictionary
+                OutputStream outputStream = context.getContentResolver().openOutputStream(uri);
+                BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(outputStream));
+                bw.write(new Gson().toJson(Markers));
+                bw.flush();
+                bw.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+    }
+
+
+
         public void exportToTxt(View view){
 
             String text = result.getText().toString();
@@ -106,36 +139,34 @@ public class MappingSession {
 
         }
 
-        /**
-         * Oben neu, Unten alt
-         */
+
+         Oben neu, Unten alt
+        */
 
         String LOG_TAG = "SessionExportError";
         String FileName = SessionTitle +".txt";
         String state = Environment.getExternalStorageState(); //get the state of the external storage
         if (!Environment.MEDIA_MOUNTED.equals(state)) { //check if it is not mounted
             Log.e(LOG_TAG, "No external storage mounted");
-            int test = 5;
         }else {
             try {
                 File root = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "Mapping Sessions"); //Get the Path of the Downloads-Dictionary and the folder  "Mapping Sessions"
                 if (!root.exists()) { //if the folder does not exist...
-                    boolean newfolder = root.mkdirs(); //... add it
-                    int test2 = 6;
+                    root.mkdirs(); //... add it
                 }
                 File file = new File(root, FileName); //get to our File
-                boolean newfile = file.createNewFile(); //create it if it doesn't exist
-                boolean test3 = false;
+                file.createNewFile(); //create it if it doesn't exist
                 FileWriter writer = new FileWriter(file); //Filewriter to write our new file
                 writer.append(new Gson().toJson(Markers)); //Add a Json of your Markers to the File
                 writer.flush(); //just send it!
                 writer.close();
-                Toast.makeText(context, "Saved", Toast.LENGTH_SHORT).show(); //shows a little "Saved" massage on the Display
+                Toast.makeText(context, "Saved to downloads", Toast.LENGTH_SHORT).show(); //shows a little "Saved" massage on the Display
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
     }
+
 
     public void addPoint(MappingPoint mappingPoint){
         this.Markers.add(mappingPoint);

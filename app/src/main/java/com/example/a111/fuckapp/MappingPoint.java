@@ -6,17 +6,26 @@ import com.google.android.gms.maps.model.MarkerOptions;
 public class MappingPoint {
 
     private LatLng latlng;
-    public String PointTitle;
-    private String Metadata; //just symbolic, add the attributes you need for the Metadata
+    private String PointTitle;
+    private String LocatingMode = "manual"; //Should be changed to GPS when GPS is used
+    public int  availableSatellites; //just symbolic, add the attributes you need for the Metadata
 
     //Constructor also add the Metadata attributes here
-    public MappingPoint(LatLng latlng, String pointTitle){
+    public MappingPoint(LatLng latlng, int Satellites){
         this.latlng = latlng;
-        this.PointTitle = pointTitle;
+        this.availableSatellites = Satellites;
     }
 
     //converts the MappingPoint to a MarkerOption
     public MarkerOptions toMarkerOptions(){
         return new MarkerOptions().position(latlng).title(PointTitle);
+    }
+
+    public void setPointTitle(String pointTitle) {
+        PointTitle = pointTitle;
+    }
+
+    public void setLocatingMode(String locatingMode) {
+        LocatingMode = locatingMode;
     }
 }

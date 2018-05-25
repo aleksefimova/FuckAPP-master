@@ -72,8 +72,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
 
+        //checking for the permissions
         if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             checkLocationPermission();
+            checkWriteExternalStoragePermission();
         }
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
@@ -172,12 +174,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     markers.add(markerOptions);
                     */
 
-                    //Replacement code but still not in the right place, userInput.getText() is still null here
-                    final MappingPoint point = new MappingPoint(arg0,(userInput.getText()).toString()); //MappingPoint instead of MarkerOptions
-                    //session.addPoint(point); //MappingSession instead of the markers Arraylist
-                    Marker m= mMap.addMarker(point.toMarkerOptions()); //add .draggable(true) makes the marker draggable
+                    final MappingPoint point = new MappingPoint(arg0,nSatellites);
+                    final Marker m= mMap.addMarker(point.toMarkerOptions().draggable(true)); //add .draggable(true) makes the marker draggable
                     m.showInfoWindow();
-
 
                     // set dialog message
                     alertDialogBuilder
@@ -190,14 +189,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
                                             String new_note = arg0.toString()+" "+userInput.getText();
                                             result.append(new_note);
-
-                                            point.PointTitle = (userInput.getText()).toString();
+                                            point.setPointTitle((userInput.getText()).toString());
+                                            session.addPoint(point);
                                         }
                                     })
                             .setNegativeButton("Cancel",
                                     new DialogInterface.OnClickListener() {
                                         public void onClick(DialogInterface dialog,int id) {
                                             dialog.cancel();
+                                            m.remove();
                                         }
                                     });
 
@@ -206,8 +206,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
                     // show it
                     alertDialog.show();
-
-                    session.addPoint(point);
 
                 }
 
@@ -290,12 +288,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     public static final int MY_PERMISSIONS_REQUEST_LOCATION = 99;
+    public static final int MY_PERMISSIONS_WRITE_EXTERNAL_STORAGE = 98;
     public boolean checkLocationPermission(){
         if (ContextCompat.checkSelfPermission(this,
                 Manifest.permission.ACCESS_FINE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED) {
 
-            // Asking user if explanation is needed
+            /*// Asking user if explanation is needed
             if (ActivityCompat.shouldShowRequestPermissionRationale(this,
                     Manifest.permission.ACCESS_FINE_LOCATION)) {
 
@@ -309,14 +308,34 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                         MY_PERMISSIONS_REQUEST_LOCATION);
 
 
-            } else {
+            } else {*/
                 // No explanation needed, we can request the permission.
                 ActivityCompat.requestPermissions(this,
                         new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
                         MY_PERMISSIONS_REQUEST_LOCATION);
-            }
+            //}
             return false;
         } else {
+            return true;
+        }
+    }
+    public boolean checkWriteExternalStoragePermission() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED) {
+            /*
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this,
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
+                // Show an explanation to the user *asynchronously* -- don't block
+                // this thread waiting for the user's response! After the user
+                // sees the explanation, try again to request the permission.
+            } else {*/
+
+                ActivityCompat.requestPermissions(this,
+                        new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                        MY_PERMISSIONS_WRITE_EXTERNAL_STORAGE);
+            //}
+            return false;
+        }else{
             return true;
         }
     }
@@ -349,6 +368,19 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 }
                 return;
             }
+            case MY_PERMISSIONS_WRITE_EXTERNAL_STORAGE: {
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    // permission was granted, yay! Do the
+                    // contacts-related task you need to do.
+                } else {
+                    // permission denied, boo! Disable the
+                    // functionality that depends on this permission.
+                }
+                return;
+            }
+
 
             // other 'case' lines to check for other permissions this app might request.
             // You can add here other case statements according to your requirement.
