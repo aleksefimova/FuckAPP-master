@@ -46,16 +46,17 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         GoogleApiClient.OnConnectionFailedListener,
         LocationListener {
 
+    final Context context = this;
     private GoogleMap mMap;
     GoogleApiClient mGoogleApiClient;
     Location mLastLocation;
     Marker mCurrLocationMarker;
     LocationRequest mLocationRequest;
     EditText result;
-    ArrayList markers; // Just to Test but needs to be done anyway
-    ArrayList testmarkers; //only for the TestarrayList
+    //ArrayList markers; // Just to Test but needs to be done anyway
+    //ArrayList testmarkers; //only for the TestarrayList
+    MappingSession session = new MappingSession(context);
     static boolean isLabellingActive = false;
-    final Context context = this;
 
 
     @Override
@@ -73,7 +74,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         result = (EditText) findViewById(R.id.editTextResult);
 
 
-        //Testarraylist
+        /*Testarraylist
         MarkerOptions[] testarray = {
                 new MarkerOptions().position(new LatLng(1.0,1.0)).title("Heinzi"),
                 new MarkerOptions().position(new LatLng(1.1,1.0)).title("Franzi"),
@@ -82,6 +83,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 new MarkerOptions().position(new LatLng(1.07,1.07)).title("Geri")
         };
         testmarkers = new ArrayList<>(Arrays.asList(testarray));
+        */
 
     }
 
@@ -136,11 +138,19 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
                     final EditText userInput = (EditText) promptsView.findViewById(R.id.editTextDialogUserInput);
 
+                    /* Replacement Code with MappingSession and MappingPoint is below
                     final List<MarkerOptions> markers = new ArrayList<MarkerOptions>();
                     MarkerOptions markerOptions= new MarkerOptions().position(arg0).title((userInput.getText()).toString());
                     Marker m= mMap.addMarker(markerOptions);
                     m.showInfoWindow();
                     markers.add(markerOptions);
+                    */
+
+                    //Replacement code but still not in the right place, userInput.getText() is still null here
+                    MappingPoint point = new MappingPoint(arg0,(userInput.getText()).toString()); //MappingPoint instead of MarkerOptions
+                    session.addPoint(point); //MappingSession instead of the markers Arraylist
+                    Marker m= mMap.addMarker(point.toMarkerOptions());
+                    m.showInfoWindow();
 
                     // set dialog message
                     alertDialogBuilder
@@ -239,11 +249,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     /** Called when the user touches the "Back" button */
 
     public void toSessionsOverview(View view){
-        markers = testmarkers; //Give markers the values of testmarkers
-        MappingSession mapS1 = new MappingSession("Test1", markers, this);
-        mapS1.SaveSession();
-        MappingSession mapS2 = new MappingSession("Test1",this);
-        mapS1.ExportSession();
+        //markers = testmarkers; //Give markers the values of testmarkers
+        session.ExportSession();
     }
 
     @Override

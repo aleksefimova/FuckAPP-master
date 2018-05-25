@@ -16,19 +16,29 @@ import java.io.IOException;
 import java.lang.reflect.Array;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 
 public class MappingSession {
 
-    public String SessionTitle;
-    public ArrayList Markers;
+    public String SessionTitle = Calendar.getInstance().getTime().toString(); //Default for the SessionTitle is the Date and Time
+    public ArrayList<MappingPoint> Markers;
     private Context context; //needed to save it with shared preferences
     private SharedPreferences sharedPref;
 
 
+
+
+    //Constructor to make an "empty" MappingSession with giving a context
+    public MappingSession(Context context){
+        this.context = context;
+        this.Markers = new ArrayList<>();
+    }
+
     //the Constructor to make a MappingSession Object from session Title, markers Context. When calling it from the Activity put "this" for the context value
-    public MappingSession(String sessionTitle, ArrayList markers, Context context){
+    public MappingSession(String sessionTitle, ArrayList<MappingPoint> markers, Context context){
         this.SessionTitle = sessionTitle;
         this.Markers = markers;
         this.context = context;
@@ -41,7 +51,7 @@ public class MappingSession {
         this.SessionTitle = sessionTitle;
         this.sharedPref = context.getSharedPreferences(this.SessionTitle, Context.MODE_PRIVATE);
         String json = sharedPref.getString(SessionTitle, null);
-        this.Markers = new Gson().fromJson(json, new ListParameterizedType<>(MarkerOptions.class));
+        this.Markers = new Gson().fromJson(json, new ListParameterizedType<>(MappingPoint.class));
     }
 
     //Save the Session to shared preferences
@@ -59,24 +69,30 @@ public class MappingSession {
         String state = Environment.getExternalStorageState(); //get the state of the external storage
         if (!Environment.MEDIA_MOUNTED.equals(state)) { //check if it is not mounted
             Log.e(LOG_TAG, "No external storage mounted");
-            return;
-        }else{
+            int test = 5;
+        }else {
             try {
-                File root = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),"Mapping Sessions"); //Get the Path of the Downloads-Dictionary and the folder  "Mapping Sessions"
+                File root = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "Mapping Sessions"); //Get the Path of the Downloads-Dictionary and the folder  "Mapping Sessions"
                 if (!root.exists()) { //if the folder does not exist...
-                    root.mkdirs(); //... add it
+                    boolean newfolder = root.mkdirs(); //... add it
+                    int test2 = 6;
                 }
-                File file = new File(root,FileName); //get to our File
-                file.createNewFile(); //create it it it doesn't exist
+                File file = new File(root, FileName); //get to our File
+                boolean newfile = file.createNewFile(); //create it if it doesn't exist
+                boolean test3 = false;
                 FileWriter writer = new FileWriter(file); //Filewriter to write our new file
                 writer.append(new Gson().toJson(Markers)); //Add a Json of your Markers to the File
                 writer.flush(); //just send it!
                 writer.close();
-                Toast.makeText(context,"Saved", Toast.LENGTH_SHORT).show(); //shows a little "Saveed" massage on the Display
-            }catch (IOException e) {
+                Toast.makeText(context, "Saved", Toast.LENGTH_SHORT).show(); //shows a little "Saved" massage on the Display
+            } catch (IOException e) {
                 e.printStackTrace();
             }
         }
+    }
+
+    public void addPoint(MappingPoint mappingPoint){
+        this.Markers.add(mappingPoint);
     }
 
     // this class implements the Interface ParameterizedType so that Gson().fromJson can properly interprete the MarkerOptions class (and every other Class)
