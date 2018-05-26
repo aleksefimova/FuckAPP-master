@@ -3,6 +3,7 @@ package com.example.a111.fuckapp;
 import android.Manifest;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.GpsSatellite;
 import android.location.GpsStatus;
@@ -61,6 +62,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     LocationRequest mLocationRequest;
     EditText result;
     MappingSession session = new MappingSession(context);
+    String DicName = "SessionDictionary"; // the Dictionary File name, to find the other files of the Sessions. If this is not preimplementet here it also doesn't find the Dictionary
     static boolean isLabellingActive = false;
     LocationManager locationManager = null;
 
@@ -95,6 +97,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         testmarkers = new ArrayList<>(Arrays.asList(testarray));
         */
 
+    }
+
+    protected void onStart() { //fired when the activity gets launched
+        super.onStart();
+        SessionDictionary sessionDictionary = new SessionDictionary(DicName, context); //load the Dictionary form shardpref
+        if (sessionDictionary.getDictionary().size()!=0) {// if there is a dictionary
+            session = new MappingSession(sessionDictionary.getNewest(), context);//load the newest session
+        }
     }
 
     @Override // meta data
@@ -173,7 +183,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     */
 
                     final MappingPoint point = new MappingPoint(arg0,nSatellites);
-                    final Marker m= mMap.addMarker(point.toMarkerOptions().draggable(true)); //add .draggable(true) makes the marker draggable
+                    final Marker m= mMap.addMarker(point.toMarkerOptions()); //add .draggable(true) makes the marker draggable
                     m.showInfoWindow();
 
                     // set dialog message
@@ -206,10 +216,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     alertDialog.show();
 
                 }
-
-
             }
         });
+        session.ApplySessiontoMap(mMap); //adds the Session to the map
     }
 
     protected synchronized void buildGoogleApiClient() {
@@ -276,8 +285,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     /** Called when the user touches the "Back" button */
 
     public void toSessionsOverview(View view){
-        //markers = testmarkers; //Give markers the values of testmarkers
-        session.ExportSession();
+        session.ExportSession(this); //just example butten for the export
     }
 
     @Override
@@ -383,5 +391,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             // other 'case' lines to check for other permissions this app might request.
             // You can add here other case statements according to your requirement.
         }
+    }
+
+    protected void onStop() {
+        super.onStop();
+        session.Save(this); //when the activity stops, the current session gets saved automatically here
     }
 }
