@@ -50,7 +50,8 @@ public class SessionDictionary {
         boolean addneed = true; //add needed
 
         for (DictionaryItem item : Dictionary) {
-            if (item.getSessionTitle() == sessionTitle) { //if the entry already exists
+            String title = item.getSessionTitle();
+            if (title.equals(sessionTitle)) { //if the entry already exists
                 item.setDate(Calendar.getInstance()); // just update of timestamp
                 addneed = false; // no add needed
             }
@@ -72,6 +73,16 @@ public class SessionDictionary {
             }
         }
         return bestItem.getSessionTitle(); //returns the newest Entry in the List
+    }
+
+    //method to get an arraylist of strings with the titles
+    public ArrayList<String> DictionaryToText(){
+        ArrayList<String> Textlist = new ArrayList<>();
+
+        for(DictionaryItem item : Dictionary){
+            Textlist.add(item.getSessionTitle());
+        }
+        return Textlist;
     }
 
     // this class implements the Interface ParameterizedType so that Gson().fromJson can properly interprete the MarkerOptions class (and every other Class)

@@ -53,6 +53,14 @@ public class MappingSession implements LifecycleObserver {
         this.Markers = new Gson().fromJson(json, new ListParameterizedType<>(MappingPoint.class));
     }
 
+    public String getSessionTitle() {
+        return SessionTitle;
+    }
+
+    public void setSessionTitle(String sessionTitle) {
+        SessionTitle = sessionTitle;
+    }
+
     //Save the Session to shared preferences, also gets fired when the activity gets on_Stop() to save the Session when the Activity is closed
     //@OnLifecycleEvent(Lifecycle.Event.ON_STOP)
     public void Save(Context context){
@@ -84,13 +92,14 @@ public class MappingSession implements LifecycleObserver {
                 @Override
                 public void onClick(DialogInterface dialog, int i) {
                     SessionTitle = input.getText().toString();
-                    Save(context);
+                    // Save(context);
+
                 }
             })
                     .setNegativeButton("cancel", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int i) {
-                            Save(context);
+                            // Save(context);
                             dialog.cancel();
                         }
                     });
@@ -99,7 +108,7 @@ public class MappingSession implements LifecycleObserver {
             builder.show();
         }
         catch(ParseException e){
-            Save(context);
+            // Save(context);
         }
     }
 

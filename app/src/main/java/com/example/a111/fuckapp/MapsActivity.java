@@ -3,6 +3,7 @@ package com.example.a111.fuckapp;
 import android.Manifest;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.GpsSatellite;
@@ -14,8 +15,11 @@ import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AppCompatActivity;
 import android.text.Editable;
+import android.text.InputType;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.widget.EditText;
 import android.widget.Toast;
 import android.view.View;
@@ -34,6 +38,8 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import android.content.Context;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays; //This is only for the TestarrayList to convert the Array
 import java.util.Iterator;
@@ -46,7 +52,7 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.gson.Gson;
 
 
-public class MapsActivity extends FragmentActivity implements OnMapReadyCallback,
+public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback,
         GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
         LocationListener,
@@ -65,6 +71,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     String DicName = "SessionDictionary"; // the Dictionary File name, to find the other files of the Sessions. If this is not preimplementet here it also doesn't find the Dictionary
     static boolean isLabellingActive = false;
     LocationManager locationManager = null;
+    Intent intent;
 
 
     @Override
@@ -85,26 +92,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         locationManager.addGpsStatusListener(this);
-
-        /*Testarraylist
-        MarkerOptions[] testarray = {
-                new MarkerOptions().position(new LatLng(1.0,1.0)).title("Heinzi"),
-                new MarkerOptions().position(new LatLng(1.1,1.0)).title("Franzi"),
-                new MarkerOptions().position(new LatLng(1.0,1.1)).title("Seppi"),
-                new MarkerOptions().position(new LatLng(1.1,1.1)).title("Karli"),
-                new MarkerOptions().position(new LatLng(1.07,1.07)).title("Geri")
-        };
-        testmarkers = new ArrayList<>(Arrays.asList(testarray));
-        */
-
+        intent = getIntent();
     }
 
     protected void onStart() { //fired when the activity gets launched
         super.onStart();
-        SessionDictionary sessionDictionary = new SessionDictionary(DicName, context); //load the Dictionary form shardpref
-        if (sessionDictionary.getDictionary().size()!=0) {// if there is a dictionary
-            session = new MappingSession(sessionDictionary.getNewest(), context);//load the newest session
-        }
+            String message = intent.getStringExtra(MainActivity.EXTRA_MESSAGE);
+            if (!message.equals("New Session")){
+                session = new MappingSession(message, context);//load the newest session
+            }
     }
 
     @Override // meta data
@@ -390,6 +386,59 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
             // other 'case' lines to check for other permissions this app might request.
             // You can add here other case statements according to your requirement.
+        }
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case android.R.id.home:
+
+                SimpleDateFormat df = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
+                try {
+                    df.parse(session.getSessionTitle()); //check if SessionTitle is a date
+
+                    AlertDialog.Builder builder = new AlertDialog.Builder(context);
+                    builder.setTitle("Session Name").setMessage("Enter the Name for this Session");
+                    final EditText input = new EditText(context);
+                    input.setInputType(InputType.TYPE_CLASS_TEXT);
+                    builder.setView(input);
+
+                    builder.setPositiveButton("ok", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int i) {
+                            session.setSessionTitle(input.getText().toString());
+                            Intent intent = new Intent(MapsActivity.this, MainActivity.class);
+                            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                            startActivity(intent);
+                            finish();
+
+                        }
+                    })
+                            .setNegativeButton("cancel", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int i) {
+                                    Intent intent = new Intent(MapsActivity.this, MainActivity.class);
+                                    intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                                    startActivity(intent);
+                                    finish();
+                                }
+                            });
+
+                    // show it
+                    builder.show();
+                }
+                catch(ParseException e){
+                    Intent intent = new Intent(MapsActivity.this, MainActivity.class);
+                    intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                    startActivity(intent);
+                    finish();
+                }
+
+                return true;
+
+            default:
+                return super.onOptionsItemSelected(item);
         }
     }
 
