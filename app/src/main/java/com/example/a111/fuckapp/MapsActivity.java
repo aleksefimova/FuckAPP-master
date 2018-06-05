@@ -44,6 +44,8 @@ import java.util.ArrayList;
 import java.util.Arrays; //This is only for the TestarrayList to convert the Array
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.Callable;
+
 import android.util.Log;
 
 
@@ -100,12 +102,15 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             String message = intent.getStringExtra(MainActivity.EXTRA_MESSAGE);
             if (!message.equals("New Session")){
                 session = new MappingSession(message, context);//load the newest session
+            }else {
+                //
             }
     }
 
     @Override // meta data
     public void onGpsStatusChanged(int x) throws SecurityException{
         GpsStatus gpsStatus = locationManager.getGpsStatus(null);
+        mLastLocation=locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
         if(gpsStatus != null) {
             Iterable<GpsSatellite>satellites = gpsStatus.getSatellites();
             Iterator<GpsSatellite> sat = satellites.iterator();
@@ -118,6 +123,60 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
         }
     }
+
+    public void mapCurrentLocation(View view){
+        if ( ! this.isLabellingActive) {
+            return;
+        }
+        LayoutInflater li = LayoutInflater.from(context);
+        View promptsView = li.inflate(R.layout.prompts, null);
+
+        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(
+                context);
+
+        // set prompts.xml to alertdialog builder
+        alertDialogBuilder.setView(promptsView);
+
+        final EditText userInput = (EditText) promptsView.findViewById(R.id.editTextDialogUserInput);
+
+
+        final LatLng currentPos = new LatLng(this.mLastLocation.getLatitude(),this.mLastLocation.getLongitude());
+        final MappingPoint point = new MappingPoint(currentPos, nSatellites);
+        final Marker m = mMap.addMarker(point.toMarkerOptions().draggable(true)); //add .draggable(true) makes the marker draggable
+        m.showInfoWindow();
+
+
+        // set dialog message
+        alertDialogBuilder
+                .setCancelable(false)
+                .setPositiveButton("OK",
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                // get user input and set it to result
+                                // edit text
+
+                                String new_note = currentPos.toString() + " " + userInput.getText() + "\n";
+                                result.append(new_note);
+                                point.setPointTitle((userInput.getText()).toString());
+                                session.addPoint(point);
+                            }
+                        })
+                .setNegativeButton("Cancel",
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                dialog.cancel();
+                                m.remove();
+                            }
+                        });
+
+        // create alert dialog
+        AlertDialog alertDialog = alertDialogBuilder.create();
+
+        // show it
+        alertDialog.show();
+
+    }
+
 
     /**
      * Manipulates the map once available.
@@ -146,74 +205,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             buildGoogleApiClient();
             mMap.setMyLocationEnabled(true);
         }
-        googleMap.setOnMapClickListener(new GoogleMap.OnMapClickListener()
-        {
-            @Override
-            public void onMapClick(final LatLng arg0)
-            {
-                if(MapsActivity.isLabellingActive){
-
-                    //Add Marker
-                    //final List<MarkerOptions> markers = new ArrayList<MarkerOptions>();
-                    //MarkerOptions markerOptions= new MarkerOptions().position(arg0).title(marker_title);
-                    //Marker m= mMap.addMarker(markerOptions);
-                    //markers.add(markerOptions);
-                    // get prompts.xml view
-                    LayoutInflater li = LayoutInflater.from(context);
-                    View promptsView = li.inflate(R.layout.prompts, null);
-
-                    AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(
-                            context);
-
-                    // set prompts.xml to alertdialog builder
-                    alertDialogBuilder.setView(promptsView);
-
-                    final EditText userInput = (EditText) promptsView.findViewById(R.id.editTextDialogUserInput);
-
-                    /* Replacement Code with MappingSession and MappingPoint is below
-                    final List<MarkerOptions> markers = new ArrayList<MarkerOptions>();
-                    MarkerOptions markerOptions= new MarkerOptions().position(arg0).title((userInput.getText()).toString());
-                    Marker m= mMap.addMarker(markerOptions);
-                    m.showInfoWindow();
-                    markers.add(markerOptions);
-                    */
-
-                    final MappingPoint point = new MappingPoint(arg0,nSatellites);
-                    final Marker m= mMap.addMarker(point.toMarkerOptions()); //add .draggable(true) makes the marker draggable
-                    m.showInfoWindow();
-
-                    // set dialog message
-                    alertDialogBuilder
-                            .setCancelable(false)
-                            .setPositiveButton("OK",
-                                    new DialogInterface.OnClickListener() {
-                                        public void onClick(DialogInterface dialog,int id) {
-                                            // get user input and set it to result
-                                            // edit text
-
-                                            String new_note = arg0.toString()+" "+userInput.getText();
-                                            result.append(new_note);
-                                            point.setPointTitle((userInput.getText()).toString());
-                                            session.addPoint(point);
-                                        }
-                                    })
-                            .setNegativeButton("Cancel",
-                                    new DialogInterface.OnClickListener() {
-                                        public void onClick(DialogInterface dialog,int id) {
-                                            dialog.cancel();
-                                            m.remove();
-                                        }
-                                    });
-
-                    // create alert dialog
-                    AlertDialog alertDialog = alertDialogBuilder.create();
-
-                    // show it
-                    alertDialog.show();
-
-                }
-            }
-        });
         session.ApplySessiontoMap(mMap); //adds the Session to the map
     }
 
@@ -238,7 +229,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 == PackageManager.PERMISSION_GRANTED) {
             LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
         }
-
+        mLastLocation = LocationServices.FusedLocationApi.getLastLocation(
+                mGoogleApiClient);
     }
 
     @Override
@@ -250,20 +242,21 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void onLocationChanged(Location location) {
 
         mLastLocation = location;
-        if (mCurrLocationMarker != null) {
+        /*if (mCurrLocationMarker != null) {
             mCurrLocationMarker.remove();
         }
 
         //Place current location marker
-        LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
+        //LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
         //MarkerOptions markerOptions = new MarkerOptions();
         //markerOptions.position(latLng);
         //markerOptions.title("Current Position");
-       // markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_MAGENTA));
+        //markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_MAGENTA));
         //mCurrLocationMarker = mMap.addMarker(markerOptions);
 
+*/
         //move map camera
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
+        mMap.moveCamera(CameraUpdateFactory.newLatLng(new LatLng(mLastLocation.getLatitude(),mLastLocation.getLongitude())));
         mMap.animateCamera(CameraUpdateFactory.zoomTo(30));
 
         //stop location updates
@@ -389,57 +382,33 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 
+    //Method that gets called when clicking the "Home" Arrow on top
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case android.R.id.home:
 
-                SimpleDateFormat df = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
-                try {
-                    df.parse(session.getSessionTitle()); //check if SessionTitle is a date
+                session.SaveSession(context, new Callable<Void>() {
+                    @Override //this is how the Method as Parameter can be given
+                    public Void call(){ //for the Callable<Void> it schould call the method...
+                        BackHome(); // BackHome() from this Activity (it is the next method implemented below)
+                        return null;
+                    }
+                });
 
-                    AlertDialog.Builder builder = new AlertDialog.Builder(context);
-                    builder.setTitle("Session Name").setMessage("Enter the Name for this Session");
-                    final EditText input = new EditText(context);
-                    input.setInputType(InputType.TYPE_CLASS_TEXT);
-                    builder.setView(input);
-
-                    builder.setPositiveButton("ok", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int i) {
-                            session.setSessionTitle(input.getText().toString());
-                            Intent intent = new Intent(MapsActivity.this, MainActivity.class);
-                            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-                            startActivity(intent);
-                            finish();
-
-                        }
-                    })
-                            .setNegativeButton("cancel", new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int i) {
-                                    Intent intent = new Intent(MapsActivity.this, MainActivity.class);
-                                    intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-                                    startActivity(intent);
-                                    finish();
-                                }
-                            });
-
-                    // show it
-                    builder.show();
-                }
-                catch(ParseException e){
-                    Intent intent = new Intent(MapsActivity.this, MainActivity.class);
-                    intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-                    startActivity(intent);
-                    finish();
-                }
-
-                return true;
+                return true; //very important to prevent that also the default of the switch is called
 
             default:
                 return super.onOptionsItemSelected(item);
         }
+    }
+
+    //Method to get back to the Main Activity
+    public void BackHome(){
+        Intent intent = new Intent(MapsActivity.this, MainActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivity(intent);
+        finish();
     }
 
     protected void onStop() {

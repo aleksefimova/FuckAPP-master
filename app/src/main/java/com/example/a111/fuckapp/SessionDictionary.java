@@ -9,6 +9,7 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.ListIterator;
 
 // this class holds a list of all the sessiontitles and a timestamp so that we can find them later in the shared preferences
 // from this class there is only one instance implemented in the Activity, and in the shared pref. This instance is named "SessionDictionary", it can be imagined as the map to all the "session files" in the shared prf
@@ -43,6 +44,20 @@ public class SessionDictionary {
     //add a new Session to the Dictionary
     public void addSession(String sessionTitle){
         Dictionary.add(new DictionaryItem(sessionTitle));
+    }
+
+    //Method to delete an entry from the Dictionary
+    public void deleteSession(final String sessionTitle){
+        ArrayList<DictionaryItem> deleteItems = new ArrayList<>();
+
+        //find the Candidates that should get deleted
+        for (DictionaryItem item : Dictionary){
+            if (sessionTitle.equals(item.getSessionTitle())){
+                deleteItems.add(item);
+            }
+        }
+
+        Dictionary.removeAll(deleteItems); //Delete the Candidates from the List
     }
 
     //Update the Session: If the entry doesn't exist it gets added, if it exists just the date gets an update

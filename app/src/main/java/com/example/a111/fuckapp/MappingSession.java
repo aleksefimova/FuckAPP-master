@@ -26,6 +26,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.concurrent.Callable;
 
 public class MappingSession implements LifecycleObserver {
 
@@ -77,7 +78,7 @@ public class MappingSession implements LifecycleObserver {
     }
 
     //Saves the Session to shared preferences after asking for a new Title if the Title is a date (default). can be used when the user leafs the activity to get to the list of Sessions
-    public void SaveSession(final Context context){ //description at ExportSession()
+    public void SaveSession(final Context context, final Callable<Void> BackHome){ //mainly description at ExportSession(). The Callable is a Function as Parameter
         SimpleDateFormat df = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
         try {
             df.parse(SessionTitle); //check if SessionTitle is a date
@@ -91,15 +92,27 @@ public class MappingSession implements LifecycleObserver {
             builder.setPositiveButton("ok", new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int i) {
-                    SessionTitle = input.getText().toString();
-                    // Save(context);
+                    Rename(context,input.getText().toString()); // Renames and saves the Session
+
+                    //Tries to call the Function given as Parameter
+                    try {
+                        BackHome.call();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
 
                 }
             })
                     .setNegativeButton("cancel", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int i) {
-                            // Save(context);
+                            //Saves the Session and tries to call the Function given as Parameter
+                            Save(context);
+                            try {
+                                BackHome.call();
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
                             dialog.cancel();
                         }
                     });
@@ -108,8 +121,15 @@ public class MappingSession implements LifecycleObserver {
             builder.show();
         }
         catch(ParseException e){
-            // Save(context);
+            //Saves the Session and tries to call the Function given as Parameter
+            Save(context);
+            try {
+                BackHome.call();
+            } catch (Exception ex) {
+                e.printStackTrace();
+            }
         }
+
     }
 
     // add a Point to the Session
@@ -133,7 +153,7 @@ public class MappingSession implements LifecycleObserver {
             builder.setPositiveButton("ok", new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int i) {
-                    SessionTitle = input.getText().toString(); //adds the new Title
+                    Rename(context,input.getText().toString()); //Renames the Session
                     Export(context); //exports
                 }
             })
@@ -151,6 +171,26 @@ public class MappingSession implements LifecycleObserver {
         catch(ParseException e){
             Export(context); //the title was already an individual one, just exports without asking
         }
+    }
+
+    //Mehtod to Rename the Session
+    public void Rename(Context context, String newTitle){
+        DeleteSession(context); // old Session gets deleted completely from SharedPref
+        SessionTitle = newTitle; // Session gets the new Title
+        Save(context); // Session gets saved again to the SharedPref with new Name
+    }
+
+    //Method to the Session from SharedPref
+    public void DeleteSession(Context context){
+        SharedPreferences sharedPref = context.getSharedPreferences(this.SessionTitle, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPref.edit(); //Creates an Editor to write to shared preferences
+        editor.remove(SessionTitle); //removes the Entry with the same Title as the current Session
+        editor.apply();
+
+        String DicName = "SessionDictionary"; //Name of the Dictionary
+        SessionDictionary sessionDictionary = new SessionDictionary(DicName, context); //Dictionary gets opened
+        sessionDictionary.deleteSession(SessionTitle); //gets also updated
+        sessionDictionary.Save(DicName, context); //and saved again
     }
 
     // Adds a Session to the map (the Markers)
