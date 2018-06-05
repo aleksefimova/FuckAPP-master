@@ -119,6 +119,59 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 
+    public void mapCurrentLocation(View view){
+        if ( ! this.isLabellingActive) {
+            return;
+        }
+        LayoutInflater li = LayoutInflater.from(context);
+        View promptsView = li.inflate(R.layout.prompts, null);
+
+        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(
+                context);
+
+        // set prompts.xml to alertdialog builder
+        alertDialogBuilder.setView(promptsView);
+
+        final EditText userInput = (EditText) promptsView.findViewById(R.id.editTextDialogUserInput);
+
+
+        final LatLng currentPos = new LatLng(this.mLastLocation.getLatitude(),this.mLastLocation.getLongitude());
+        final MappingPoint point = new MappingPoint(currentPos, nSatellites);
+        final Marker m = mMap.addMarker(point.toMarkerOptions().draggable(true)); //add .draggable(true) makes the marker draggable
+        m.showInfoWindow();
+
+        // set dialog message
+        alertDialogBuilder
+                .setCancelable(false)
+                .setPositiveButton("OK",
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                // get user input and set it to result
+                                // edit text
+
+                                String new_note = currentPos.toString() + " " + userInput.getText() + "\n";
+                                result.append(new_note);
+                                point.setPointTitle((userInput.getText()).toString());
+                                session.addPoint(point);
+                            }
+                        })
+                .setNegativeButton("Cancel",
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                dialog.cancel();
+                                m.remove();
+                            }
+                        });
+
+        // create alert dialog
+        AlertDialog alertDialog = alertDialogBuilder.create();
+
+        // show it
+        alertDialog.show();
+
+    }
+
+
     /**
      * Manipulates the map once available.
      * This callback is triggered when the map is ready to be used.
@@ -146,6 +199,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             buildGoogleApiClient();
             mMap.setMyLocationEnabled(true);
         }
+
+        /*
         googleMap.setOnMapClickListener(new GoogleMap.OnMapClickListener()
         {
             @Override
@@ -170,13 +225,13 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
                     final EditText userInput = (EditText) promptsView.findViewById(R.id.editTextDialogUserInput);
 
-                    /* Replacement Code with MappingSession and MappingPoint is below
+                    Replacement Code with MappingSession and MappingPoint is below
                     final List<MarkerOptions> markers = new ArrayList<MarkerOptions>();
                     MarkerOptions markerOptions= new MarkerOptions().position(arg0).title((userInput.getText()).toString());
                     Marker m= mMap.addMarker(markerOptions);
                     m.showInfoWindow();
                     markers.add(markerOptions);
-                    */
+
 
                     final MappingPoint point = new MappingPoint(arg0,nSatellites);
                     final Marker m= mMap.addMarker(point.toMarkerOptions()); //add .draggable(true) makes the marker draggable
@@ -214,6 +269,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 }
             }
         });
+*/
         session.ApplySessiontoMap(mMap); //adds the Session to the map
     }
 
@@ -238,7 +294,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 == PackageManager.PERMISSION_GRANTED) {
             LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
         }
-
+        mLastLocation = LocationServices.FusedLocationApi.getLastLocation(
+                mGoogleApiClient);
     }
 
     @Override
@@ -250,7 +307,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void onLocationChanged(Location location) {
 
         mLastLocation = location;
-        if (mCurrLocationMarker != null) {
+        /*if (mCurrLocationMarker != null) {
             mCurrLocationMarker.remove();
         }
 
@@ -261,9 +318,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         //markerOptions.title("Current Position");
        // markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_MAGENTA));
         //mCurrLocationMarker = mMap.addMarker(markerOptions);
-
+*/
         //move map camera
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
+        mMap.moveCamera(CameraUpdateFactory.newLatLng(new LatLng(mLastLocation.getLatitude(),mLastLocation.getLongitude())));
         mMap.animateCamera(CameraUpdateFactory.zoomTo(30));
 
         //stop location updates

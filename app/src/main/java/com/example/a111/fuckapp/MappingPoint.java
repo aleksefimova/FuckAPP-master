@@ -7,7 +7,7 @@ public class MappingPoint {
 
     private LatLng latlng;
     private String PointTitle;
-    private String LocatingMode = "manual"; //Should be changed to GPS when GPS is used
+    private String LocatingMode = "GPS"; //Should be changed to GPS when GPS is used
     private int  availableSatellites;
 
     //Constructor also add the Metadata attributes here
