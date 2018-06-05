@@ -106,6 +106,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override // meta data
     public void onGpsStatusChanged(int x) throws SecurityException{
         GpsStatus gpsStatus = locationManager.getGpsStatus(null);
+        mLastLocation=locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
         if(gpsStatus != null) {
             Iterable<GpsSatellite>satellites = gpsStatus.getSatellites();
             Iterator<GpsSatellite> sat = satellites.iterator();
@@ -139,6 +140,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         final MappingPoint point = new MappingPoint(currentPos, nSatellites);
         final Marker m = mMap.addMarker(point.toMarkerOptions().draggable(true)); //add .draggable(true) makes the marker draggable
         m.showInfoWindow();
+
 
         // set dialog message
         alertDialogBuilder
@@ -312,12 +314,13 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
 
         //Place current location marker
-        LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
+        //LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
         //MarkerOptions markerOptions = new MarkerOptions();
         //markerOptions.position(latLng);
         //markerOptions.title("Current Position");
-       // markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_MAGENTA));
+        //markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_MAGENTA));
         //mCurrLocationMarker = mMap.addMarker(markerOptions);
+
 */
         //move map camera
         mMap.moveCamera(CameraUpdateFactory.newLatLng(new LatLng(mLastLocation.getLatitude(),mLastLocation.getLongitude())));
