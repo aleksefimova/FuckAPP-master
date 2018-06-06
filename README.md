@@ -30,3 +30,4 @@ Doing that I figured out that there is another small problem with the implementa
 2. That after renaming a session it kept the session with the old name also in the storage and list of sessions in the MainActivity
 3. That the Markers dissapered when working on a new, never saved session after rotating the view.
 
+Now the functionality should be on an acceptable level. Regardless, on my opinion we should optimize a few other things as well bevore testing, like the UI and for example where the Map focuses when starting. These are small changes with big effect.
