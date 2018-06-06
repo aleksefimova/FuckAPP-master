@@ -74,6 +74,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     static boolean isLabellingActive = false;
     LocationManager locationManager = null;
     Intent intent;
+    public static final String EXTRA_MESSAGE = "com.example.a111.fuckapp.MESSAGE";
 
 
     @Override
@@ -99,11 +100,11 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     protected void onStart() { //fired when the activity gets launched
         super.onStart();
-            String message = intent.getStringExtra(MainActivity.EXTRA_MESSAGE);
+            String message = intent.getStringExtra(MainActivity.EXTRA_MESSAGE); //get the titlename of the session
             if (!message.equals("New Session")){
-                session = new MappingSession(message, context);//load the newest session
+                session = new MappingSession(message, context);//load the session with the name given by intents extramassage
             }else {
-                //
+                intent.putExtra(EXTRA_MESSAGE, session.getSessionTitle());//if it is a new session the intent extramessage gets the title of that session so that it doesnt load a new session when rotated
             }
     }
 
