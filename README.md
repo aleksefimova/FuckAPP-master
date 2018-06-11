@@ -25,3 +25,9 @@ Doing that I figured out that there is another small problem with the implementa
 
 2018.06.04 David: All should be done, in an at least "just for security"-way. But I guess there will come a better version of Sandro. This GitHub Version won't work anymore on every computer because it has that local properties file on it, I don't know how to delete stuff here on GitHub. But my last changes should all be just in the app folder anyways.
 
+2018.06.06 10:00 Daivd: Fixed the three remaining bugs. 
+1. That a new session/renamed session was not imediately shown after going back to the MainActivity from MapsActivity
+2. That after renaming a session it kept the session with the old name also in the storage and list of sessions in the MainActivity
+3. That the Markers dissapered when working on a new, never saved session after rotating the view.
+
+Now the functionality should be on an acceptable level. Regardless, on my opinion we should optimize a few other things as well bevore testing, like the UI and for example where the Map focuses when starting. These are small changes with big effect.
