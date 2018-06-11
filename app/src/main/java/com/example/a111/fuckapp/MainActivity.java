@@ -29,7 +29,7 @@ public class MainActivity extends AppCompatActivity {
         lv = (ListView) findViewById(R.id._listview);
 
         ArrayList<String> Stringlist = new ArrayList<>();
-        Stringlist.add("New Session");
+        Stringlist.add("Start a new session");
         Stringlist.addAll(sessionDictionary.DictionaryToText());
 
         ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, Stringlist);

@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">FuckAPP</string>
     <string name="title_activity_maps">FuckApp</string>
+    <string name="export">Export</string>
 </resources>

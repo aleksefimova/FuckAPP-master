@@ -1,39 +1,17 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-android:layout_width="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
 android:layout_height="match_parent"
 android:orientation="vertical" >
 
-    <LinearLayout
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/maps_menu"
         android:layout_width="match_parent"
-        android:layout_height="68dp"
-        android:orientation="horizontal">
-
-        <Button
-            android:id="@+id/button"
-            style="@android:style/Widget.Button.Toggle"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:onClick="toggleMapLabellingSession"
-            android:text="Turn On/Off Map Labelling Session" />
-
-        <Button
-            android:id="@+id/button5"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:onClick="mapCurrentLocation"
-            android:text="map point" />
-
-        <Button
-            android:id="@+id/button4"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:onClick="toSessionsOverview"
-            android:text="Export" />
-
-    </LinearLayout>
+        android:layout_height="?attr/actionBarSize"
+        android:background="?attr/colorPrimary"
+        android:elevation="4dp"
+        android:theme="@style/ThemeOverlay.AppCompat.ActionBar"
+        app:popupTheme="@style/ThemeOverlay.AppCompat.Light" />
 
     <EditText
         android:id="@+id/editTextResult"
@@ -41,13 +19,33 @@ android:orientation="vertical" >
         android:layout_width="match_parent"
         android:layout_height="wrap_content"></EditText>
 
-    <fragment xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:map="http://schemas.android.com/apk/res-auto"
-        xmlns:tools="http://schemas.android.com/tools"
-        android:id="@+id/map"
-        android:name="com.google.android.gms.maps.SupportMapFragment"
+    <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        tools:context="com.example.a111.fuckapp.MapsActivity"
-        android:onClick="mapClickResponse" />
+        android:layout_height="match_parent">
+
+        <Button
+            android:id="@+id/button5"
+            android:layout_width="118dp"
+            android:layout_height="68dp"
+            android:layout_alignParentBottom="true"
+            android:layout_centerHorizontal="true"
+            android:layout_marginBottom="14dp"
+            android:gravity="center_horizontal|center_vertical"
+            android:onClick="mapCurrentLocation"
+            android:text="save  point" />
+
+        <fragment xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:map="http://schemas.android.com/apk/res-auto"
+            xmlns:tools="http://schemas.android.com/tools"
+            android:id="@+id/map"
+            android:name="com.google.android.gms.maps.SupportMapFragment"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentTop="true"
+            android:onClick="mapClickResponse"
+            tools:context="com.example.a111.fuckapp.MapsActivity"
+            android:layout_alignParentLeft="true" />
+
+    </RelativeLayout>
 </LinearLayout>

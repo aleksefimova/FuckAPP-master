@@ -16,9 +16,11 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.InputType;
 import android.view.LayoutInflater;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.EditText;
 import android.widget.Toast;
@@ -71,7 +73,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     EditText result;
     MappingSession session = new MappingSession(context);
     String DicName = "SessionDictionary"; // the Dictionary File name, to find the other files of the Sessions. If this is not preimplementet here it also doesn't find the Dictionary
-    static boolean isLabellingActive = false;
+    //static boolean isLabellingActive = false;
     LocationManager locationManager = null;
     Intent intent;
     public static final String EXTRA_MESSAGE = "com.example.a111.fuckapp.MESSAGE";
@@ -96,12 +98,20 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         locationManager.addGpsStatusListener(this);
         intent = getIntent();
+
+        //Set the Toolbar defined in style
+        Toolbar Toolbar = (Toolbar) findViewById(R.id.maps_menu);
+        setSupportActionBar(Toolbar);
+        //get the home arrow
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setDisplayShowHomeEnabled(true);
+
     }
 
     protected void onStart() { //fired when the activity gets launched
         super.onStart();
             String message = intent.getStringExtra(MainActivity.EXTRA_MESSAGE); //get the titlename of the session
-            if (!message.equals("New Session")){
+            if (!message.equals("Start a new session")){
                 session = new MappingSession(message, context);//load the session with the name given by intents extramassage
             }else {
                 intent.putExtra(EXTRA_MESSAGE, session.getSessionTitle());//if it is a new session the intent extramessage gets the title of that session so that it doesnt load a new session when rotated
@@ -126,9 +136,11 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     public void mapCurrentLocation(View view){
+        /*
         if ( ! this.isLabellingActive) {
             return;
         }
+        */
         LayoutInflater li = LayoutInflater.from(context);
         View promptsView = li.inflate(R.layout.prompts, null);
 
@@ -266,11 +278,12 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
 
     }
-
-    /** Called when the user touches the button */
+    /*
+    /** Called when the user touches the button
     public void toggleMapLabellingSession(View view) {
        this.isLabellingActive = ! this.isLabellingActive; // it's assigned its negation
     }
+    */
 
     /** Called when the user touches the "Back" button */
 
@@ -383,6 +396,14 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 
+    //To get my maps_menu.xml file as toolbar
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.maps_menu, menu);
+        return true;
+    }
+
     //Method that gets called when clicking the "Home" Arrow on top
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -399,10 +420,14 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
                 return true; //very important to prevent that also the default of the switch is called
 
+            case R.id.export_session:
+                session.ExportSession(this); //just example butten for the export
+
             default:
                 return super.onOptionsItemSelected(item);
         }
     }
+
 
     //Method to get back to the Main Activity
     public void BackHome(){
